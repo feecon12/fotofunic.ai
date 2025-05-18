@@ -37,6 +37,7 @@ const ForgetpasswordForm = ({ className }: { className?: string }) => {
   function onSubmit(values: z.infer<typeof formSchema>) {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
+    setLoading(true);
     console.log(values);
   }
   return (
