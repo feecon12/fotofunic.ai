@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react'
+import React, { useId, useState } from 'react'
 import { z } from "zod"
 import {zodResolver} from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
+import { redirect } from 'next/navigation';
+import { toast } from 'sonner';
+import { login } from '@/app/actions/auth-actions';
 
 const formSchema = z.object({
     email: z.string().email({
@@ -27,7 +30,8 @@ const formSchema = z.object({
 })
 
 const LoginForm = ({ className }: { className?: string }) => {
-    const [loading, setLoading] = useState(false);
+      const [loading, setLoading] = useState(false);
+      const toastId = useId();
   
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
@@ -38,10 +42,30 @@ const LoginForm = ({ className }: { className?: string }) => {
     },
   });
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    toast.loading("Logging you in...", { id: toastId });
+    setLoading(true);
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
-    setLoading(true);
+
+    const formData = new FormData();
+    formData.append("email", values.email);
+    formData.append("password", values.password);
+    // formData.append("confirmPassword", values.confirmPassword);
+
+    const { success, error } = await login(formData);
+    if (!success) {
+      toast.error(error, { id: toastId });
+      setLoading(false);
+    } else {
+      toast.success(
+        "Login successful! Redirecting to your dashboard...",
+        { id: toastId }
+      );
+      setLoading(false);
+      form.reset();
+      redirect("/dashboard");
+    }
     console.log(values);
   }
     return (

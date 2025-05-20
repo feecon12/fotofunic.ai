@@ -61,6 +61,10 @@ const SignupForm = ({ className }: { className?: string }) => {
       confirmPassword: "",
     },
   });
+
+  function clearForm() { 
+    form.reset();
+  }
   // 2. Define a submit handler.
  async function onSubmit(values: z.infer<typeof formSchema>) {
     toast.loading("Creating your account...",{id: toastId});
@@ -81,6 +85,7 @@ const SignupForm = ({ className }: { className?: string }) => {
     } else {
       toast.success("Account created successfully! Please confirm your email address.", { id: toastId });
       setLoading(false);
+      clearForm();
       redirect("/login");
     }
     console.log(values);
