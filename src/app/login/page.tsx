@@ -26,7 +26,7 @@ const AuthenticationPage = () => {
               generate high quality professional headshots within minutes. It
               has saved me countless hours of work and cost as well.&rdquo;
             </p>
-            <footer className="ttext-xs md:text-sm">David S.</footer>
+            <footer className="text-xs md:text-sm">David S.</footer>
           </blockquote>
         </div>
       </div>

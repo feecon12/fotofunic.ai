@@ -26,7 +26,7 @@ const navItems = [
     icon: SquareTerminal,
   },
   {
-    title: "Generate Image",
+    title: "Generate Images",
     url: "/image-generation",
     icon: Image,
   },
@@ -36,7 +36,7 @@ const navItems = [
     icon: Frame,
   },
   {
-    title: "Train Models",
+    title: "Train Model",
     url: "/model-training",
     icon: Layers,
   },
