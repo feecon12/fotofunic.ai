@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
-import { z } from "zod";
 import { ImageGenerationFormSchema } from "@/components/image-generation/Configurations";
 import Replicate from "replicate";
+import { z } from "zod";
 
 const replicate = new Replicate({
-    auth: process.env.REPLICATE_API_TOKEN,
-    useFileOutput:false,
+  auth: process.env.REPLICATE_API_TOKEN,
+  useFileOutput: false,
 });
 
 interface ImageResponse {
@@ -16,7 +16,7 @@ interface ImageResponse {
 }
 
 export async function generateImageAction(
-  input: z.infer<typeof ImageGenerationFormSchema>
+  input: z.infer<typeof ImageGenerationFormSchema>,
 ): Promise<ImageResponse> {
   const modelInput = {
     prompt: input.prompt,
@@ -31,21 +31,20 @@ export async function generateImageAction(
     num_inference_steps: input.num_of_inference_steps,
   };
 
-    try {
-        const output = await replicate.run(input.model as `${string}/${string}`, {
-            input: modelInput,
-        });
-        return {
-            error: null,
-            success: true,
-            data:output,
-        }
-    
-    } catch (e: any) {
-        return {
-            error: e.message || "Failed to generate image!",
-            success: false,
-            data: null
-        }
+  try {
+    const output = await replicate.run(input.model as `${string}/${string}`, {
+      input: modelInput,
+    });
+    return {
+      error: null,
+      success: true,
+      data: output,
+    };
+  } catch (e: any) {
+    return {
+      error: e.message || "Failed to generate image!",
+      success: false,
+      data: null,
+    };
   }
 }

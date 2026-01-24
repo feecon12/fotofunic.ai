@@ -26,6 +26,7 @@ import {
   CheckSquare,
   Download,
   Edit2,
+  Heart,
   Loader2,
   Plus,
   Square,
@@ -48,6 +49,7 @@ interface GalleryImage {
   num_inference_steps: number | null;
   output_format: string | null;
   aspect_ratio: string | null;
+  is_favorite: boolean;
 }
 
 export default function GalleryPage() {
@@ -55,15 +57,18 @@ export default function GalleryPage() {
     images,
     allTags,
     selectedTag,
+    showOnlyFavorites,
     loading,
     error,
     loadGallery,
     loadImagesByTag,
     clearTagFilter,
+    toggleShowFavorites,
     deleteImage,
     renameImage,
     addTagToImage,
     removeTagFromImage,
+    toggleFavoriteImage,
     loadAllTags,
   } = useGalleryStore();
 
@@ -292,17 +297,12 @@ export default function GalleryPage() {
     }
   };
 
-  const filteredImages = debouncedSearchQuery
-    ? images.filter(
-        (img) =>
-          img.prompt
-            .toLowerCase()
-            .includes(debouncedSearchQuery.toLowerCase()) ||
-          img.image_name
-            ?.toLowerCase()
-            .includes(debouncedSearchQuery.toLowerCase())
-      )
-    : images;
+  const filteredImages = (showOnlyFavorites ? images.filter(img => img.is_favorite) : images).filter(
+    (img) =>
+      !debouncedSearchQuery ||
+      img.prompt.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+      img.image_name?.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
@@ -314,17 +314,26 @@ export default function GalleryPage() {
             Manage and organize your generated images
           </p>
         </div>
-        <Button
-          variant={selectMode ? "default" : "outline"}
-          onClick={() => {
-            setSelectMode(!selectMode);
-            if (selectMode) {
-              setSelectedImages(new Set());
-            }
-          }}
-        >
-          {selectMode ? "Exit Select Mode" : "Select Multiple"}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant={showOnlyFavorites ? "default" : "outline"}
+            onClick={() => toggleShowFavorites()}
+          >
+            <Heart className={`h-4 w-4 mr-2 ${showOnlyFavorites ? 'fill-current' : ''}`} />
+            Favorites {showOnlyFavorites && `(${images.filter(img => img.is_favorite).length})`}
+          </Button>
+          <Button
+            variant={selectMode ? "default" : "outline"}
+            onClick={() => {
+              setSelectMode(!selectMode);
+              if (selectMode) {
+                setSelectedImages(new Set());
+              }
+            }}
+          >
+            {selectMode ? "Exit Select Mode" : "Select Multiple"}
+          </Button>
+        </div>
       </div>
 
       {/* Bulk Selection Toolbar */}
@@ -765,6 +774,20 @@ export default function GalleryPage() {
 
                 {/* Delete Button */}
                 <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant={image.is_favorite ? "default" : "outline"}
+                    className="flex-1 text-xs"
+                    onClick={() => toggleFavoriteImage(image.id)}
+                  >
+                    <Heart
+                      className={`h-3 w-3 mr-1 ${
+                        image.is_favorite ? "fill-current" : ""
+                      }`}
+                    />
+                    {image.is_favorite ? "Favorited" : "Favorite"}
+                  </Button>
+
                   <Button
                     size="sm"
                     variant="outline"

@@ -6,6 +6,7 @@ import {
   getAllTags,
   getImagesByTag,
   saveToGallery,
+  toggleFavorite,
   updateGalleryImage,
 } from "@/app/actions/gallery-actions";
 import { create } from "zustand";
@@ -22,12 +23,14 @@ interface GalleryImage {
   num_inference_steps: number | null;
   output_format: string | null;
   aspect_ratio: string | null;
+  is_favorite: boolean;
 }
 
 interface GalleryState {
   images: GalleryImage[];
   allTags: string[];
   selectedTag: string | null;
+  showOnlyFavorites: boolean;
   loading: boolean;
   error: string | null;
 
@@ -35,10 +38,12 @@ interface GalleryState {
   loadGallery: () => Promise<void>;
   loadImagesByTag: (tag: string) => Promise<void>;
   clearTagFilter: () => Promise<void>;
+  toggleShowFavorites: () => void;
   deleteImage: (imageId: number) => Promise<void>;
   renameImage: (imageId: number, newName: string) => Promise<void>;
   addTagToImage: (imageId: number, tag: string) => Promise<void>;
   removeTagFromImage: (imageId: number, tag: string) => Promise<void>;
+  toggleFavoriteImage: (imageId: number) => Promise<void>;
   loadAllTags: () => Promise<void>;
   addToGallery: (
     url: string,
@@ -57,8 +62,13 @@ const useGalleryStore = create<GalleryState>((set, get) => ({
   images: [],
   allTags: [],
   selectedTag: null,
+  showOnlyFavorites: false,
   loading: false,
   error: null,
+
+  toggleShowFavorites: () => {
+    set({ showOnlyFavorites: !get().showOnlyFavorites });
+  },
 
   loadGallery: async () => {
     set({ loading: true, error: null });
@@ -285,6 +295,37 @@ const useGalleryStore = create<GalleryState>((set, get) => ({
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
       set({ error: errorMessage, loading: false });
+    }
+  },
+
+  toggleFavoriteImage: async (imageId: number) => {
+    // Optimistic update
+    const previousImages = get().images;
+    set((state) => ({
+      images: state.images.map((img) =>
+        img.id === imageId ? { ...img, is_favorite: !img.is_favorite } : img
+      ),
+    }));
+
+    try {
+      const { success, data, error } = await toggleFavorite(imageId);
+      if (!success) {
+        // Rollback on error
+        set({
+          images: previousImages,
+          error: error || "Failed to toggle favorite",
+        });
+        return;
+      }
+
+      // Update with server response
+      set((state) => ({
+        images: state.images.map((img) => (img.id === imageId ? data! : img)),
+      }));
+    } catch (err) {
+      // Rollback on error
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      set({ images: previousImages, error: errorMessage });
     }
   },
 }));

@@ -14,6 +14,7 @@ interface GalleryImage {
   num_inference_steps: number | null;
   output_format: string | null;
   aspect_ratio: string | null;
+  is_favorite: boolean;
 }
 
 interface ActionResponse<T> {
@@ -326,3 +327,69 @@ export async function getAllTags(): Promise<ActionResponse<string[]>> {
     };
   }
 }
+
+// Toggle favorite status for an image
+export async function toggleFavorite(
+  imageId: number
+): Promise<ActionResponse<GalleryImage>> {
+  try {
+    const supabase = await createServerClientComponent();
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return {
+        success: false,
+        error: "User not authenticated",
+      };
+    }
+
+    // Get current favorite status
+    const { data: currentData, error: fetchError } = await supabase
+      .from("generated_images")
+      .select("is_favorite")
+      .eq("id", imageId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (fetchError) {
+      return {
+        success: false,
+        error: fetchError.message || "Failed to fetch image",
+      };
+    }
+
+    // Toggle the favorite status
+    const newFavoriteStatus = !(currentData?.is_favorite ?? false);
+
+    const { data, error } = await supabase
+      .from("generated_images")
+      .update({ is_favorite: newFavoriteStatus })
+      .eq("id", imageId)
+      .eq("user_id", user.id)
+      .select()
+      .single();
+
+    if (error) {
+      return {
+        success: false,
+        error: error.message || "Failed to toggle favorite",
+      };
+    }
+
+    return {
+      success: true,
+      data: data as GalleryImage,
+    };
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+}
+
