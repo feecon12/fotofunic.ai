@@ -257,7 +257,7 @@ export default function GalleryPage() {
     setBulkDownloading(true);
     try {
       const imagesToDownload = filteredImages.filter((img) =>
-        selectedImages.has(img.id)
+        selectedImages.has(img.id),
       );
 
       if (imagesToDownload.length === 1) {
@@ -273,7 +273,7 @@ export default function GalleryPage() {
             url: img.url,
             name: img.image_name || `image-${img.id}`,
           })),
-          `fotofunic-images-${new Date().getTime()}`
+          `fotofunic-images-${new Date().getTime()}`,
         );
         toast.success(`Downloaded ${imagesToDownload.length} images as ZIP!`);
       }
@@ -297,11 +297,15 @@ export default function GalleryPage() {
     }
   };
 
-  const filteredImages = (showOnlyFavorites ? images.filter(img => img.is_favorite) : images).filter(
+  const filteredImages = (
+    showOnlyFavorites ? images.filter((img) => img.is_favorite) : images
+  ).filter(
     (img) =>
       !debouncedSearchQuery ||
       img.prompt.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-      img.image_name?.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
+      img.image_name
+        ?.toLowerCase()
+        .includes(debouncedSearchQuery.toLowerCase()),
   );
 
   return (
@@ -319,8 +323,12 @@ export default function GalleryPage() {
             variant={showOnlyFavorites ? "default" : "outline"}
             onClick={() => toggleShowFavorites()}
           >
-            <Heart className={`h-4 w-4 mr-2 ${showOnlyFavorites ? 'fill-current' : ''}`} />
-            Favorites {showOnlyFavorites && `(${images.filter(img => img.is_favorite).length})`}
+            <Heart
+              className={`h-4 w-4 mr-2 ${showOnlyFavorites ? "fill-current" : ""}`}
+            />
+            Favorites{" "}
+            {showOnlyFavorites &&
+              `(${images.filter((img) => img.is_favorite).length})`}
           </Button>
           <Button
             variant={selectMode ? "default" : "outline"}

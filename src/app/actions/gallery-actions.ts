@@ -33,7 +33,7 @@ export async function saveToGallery(
   output_format: string,
   aspect_ratio: string,
   tags: string[] = [],
-  image_name?: string
+  image_name?: string,
 ): Promise<ActionResponse<GalleryImage>> {
   try {
     const supabase = await createServerClientComponent();
@@ -136,7 +136,7 @@ export async function fetchGalleryImages(): Promise<
 
 // Delete image from gallery
 export async function deleteGalleryImage(
-  imageId: number
+  imageId: number,
 ): Promise<ActionResponse<null>> {
   try {
     const supabase = await createServerClientComponent();
@@ -183,7 +183,7 @@ export async function deleteGalleryImage(
 export async function updateGalleryImage(
   imageId: number,
   image_name?: string,
-  tags?: string[]
+  tags?: string[],
 ): Promise<ActionResponse<GalleryImage>> {
   try {
     const supabase = await createServerClientComponent();
@@ -234,7 +234,7 @@ export async function updateGalleryImage(
 
 // Get images by tag
 export async function getImagesByTag(
-  tag: string
+  tag: string,
 ): Promise<ActionResponse<GalleryImage[]>> {
   try {
     const supabase = await createServerClientComponent();
@@ -330,7 +330,7 @@ export async function getAllTags(): Promise<ActionResponse<string[]>> {
 
 // Toggle favorite status for an image
 export async function toggleFavorite(
-  imageId: number
+  imageId: number,
 ): Promise<ActionResponse<GalleryImage>> {
   try {
     const supabase = await createServerClientComponent();
@@ -392,4 +392,3 @@ export async function toggleFavorite(
     };
   }
 }
-

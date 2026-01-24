@@ -54,7 +54,7 @@ interface GalleryState {
     output_format: string,
     aspect_ratio: string,
     tags?: string[],
-    image_name?: string
+    image_name?: string,
   ) => Promise<void>;
 }
 
@@ -134,14 +134,14 @@ const useGalleryStore = create<GalleryState>((set, get) => ({
     const previousImages = get().images;
     set((state) => ({
       images: state.images.map((img) =>
-        img.id === imageId ? { ...img, image_name: newName } : img
+        img.id === imageId ? { ...img, image_name: newName } : img,
       ),
     }));
 
     try {
       const { success, data, error } = await updateGalleryImage(
         imageId,
-        newName
+        newName,
       );
       if (!success) {
         // Rollback on error
@@ -174,7 +174,7 @@ const useGalleryStore = create<GalleryState>((set, get) => ({
     const newTags = Array.from(new Set([...currentImage.tags, tag]));
     set((state) => ({
       images: state.images.map((img) =>
-        img.id === imageId ? { ...img, tags: newTags } : img
+        img.id === imageId ? { ...img, tags: newTags } : img,
       ),
     }));
 
@@ -182,7 +182,7 @@ const useGalleryStore = create<GalleryState>((set, get) => ({
       const { success, data, error } = await updateGalleryImage(
         imageId,
         undefined,
-        newTags
+        newTags,
       );
       if (!success) {
         // Rollback on error
@@ -214,7 +214,7 @@ const useGalleryStore = create<GalleryState>((set, get) => ({
     const newTags = currentImage.tags.filter((t) => t !== tag);
     set((state) => ({
       images: state.images.map((img) =>
-        img.id === imageId ? { ...img, tags: newTags } : img
+        img.id === imageId ? { ...img, tags: newTags } : img,
       ),
     }));
 
@@ -222,7 +222,7 @@ const useGalleryStore = create<GalleryState>((set, get) => ({
       const { success, data, error } = await updateGalleryImage(
         imageId,
         undefined,
-        newTags
+        newTags,
       );
       if (!success) {
         // Rollback on error
@@ -264,7 +264,7 @@ const useGalleryStore = create<GalleryState>((set, get) => ({
     output_format: string,
     aspect_ratio: string,
     tags = [],
-    image_name = undefined
+    image_name = undefined,
   ) => {
     set({ loading: true, error: null });
     try {
@@ -277,7 +277,7 @@ const useGalleryStore = create<GalleryState>((set, get) => ({
         output_format,
         aspect_ratio,
         tags,
-        image_name
+        image_name,
       );
       if (!success) {
         set({ error: error || "Failed to save image", loading: false });
@@ -303,7 +303,7 @@ const useGalleryStore = create<GalleryState>((set, get) => ({
     const previousImages = get().images;
     set((state) => ({
       images: state.images.map((img) =>
-        img.id === imageId ? { ...img, is_favorite: !img.is_favorite } : img
+        img.id === imageId ? { ...img, is_favorite: !img.is_favorite } : img,
       ),
     }));
 
