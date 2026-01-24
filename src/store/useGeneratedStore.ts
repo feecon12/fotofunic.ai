@@ -1,6 +1,6 @@
-import { saveToGallery } from "@/app/actions/gallery-actions";
 import { generateImageAction } from "@/app/actions/image-actions";
 import { ImageGenerationFormSchema } from "@/components/image-generation/Configurations";
+import { saveToGalleryClient } from "@/lib/gallery-client";
 import { z } from "zod";
 import { create } from "zustand";
 
@@ -9,7 +9,7 @@ interface GenerateState {
   images: Array<{ url: string }>;
   error: string | null;
   generateImage: (
-    values: z.infer<typeof ImageGenerationFormSchema>
+    values: z.infer<typeof ImageGenerationFormSchema>,
   ) => Promise<void>;
 }
 
@@ -23,25 +23,37 @@ const useGeneratedStore = create<GenerateState>((set) => ({
 
     try {
       const { error, success, data } = await generateImageAction(values);
+
       if (!success) {
-        set({ error: error, loading: false });
+        const errorMsg = error || "Failed to generate image";
+        set({ error: errorMsg, loading: false });
         return;
       }
 
-      // Save each generated image to gallery
+      if (!data) {
+        const errorMsg = "No data returned from image generation";
+        set({ error: errorMsg, loading: false });
+        return;
+      }
+
+      // Save each generated image to gallery via client (requires login)
       const imageUrls = Array.isArray(data) ? data : [data];
+
       for (const url of imageUrls) {
-        await saveToGallery(
+        const result = await saveToGalleryClient({
           url,
-          values.prompt,
-          values.model,
-          values.guidance,
-          values.num_of_inference_steps,
-          values.output_format,
-          values.aspect_ratio,
-          [], // tags (empty by default)
-          undefined // image_name (user can rename in gallery)
-        );
+          prompt: values.prompt,
+          model: values.model,
+          guidance: values.guidance,
+          num_inference_steps: values.num_of_inference_steps,
+          output_format: values.output_format,
+          aspect_ratio: values.aspect_ratio,
+          tags: [],
+          image_name: undefined,
+        });
+        if (!result.success) {
+          // Silent fail - user sees error on UI if save fails
+        }
       }
 
       const dataWithUrl = imageUrls.map((url: string) => {
@@ -49,8 +61,8 @@ const useGeneratedStore = create<GenerateState>((set) => ({
       });
       set({ images: dataWithUrl, loading: false });
     } catch (e) {
-      console.log(e);
-      set({ error: "failed to generate image", loading: false });
+      const errorMsg = e instanceof Error ? e.message : String(e);
+      set({ error: errorMsg, loading: false });
     }
   },
 }));

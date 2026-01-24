@@ -1,8 +1,6 @@
-"use client";
-
-import React, { useEffect } from "react";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
+import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -33,8 +31,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Info, Loader2 } from "lucide-react";
 import useGeneratedStore from "@/store/useGeneratedStore";
+import { AlertCircle, Info, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 /*
   prompt: "black forest gateau cake spelling out the words \"FLUX DEV\", tasty, food photography, dynamic shot",
@@ -81,8 +80,9 @@ export const ImageGenerationFormSchema = z.object({
 });
 
 const Configurations = () => {
-    const generateImage = useGeneratedStore((state) => state.generateImage);
-    const loading = useGeneratedStore((state) => state.loading);
+  const generateImage = useGeneratedStore((state) => state.generateImage);
+  const loading = useGeneratedStore((state) => state.loading);
+  const error = useGeneratedStore((state) => state.error);
   // 1. Define your form.
   const form = useForm<z.infer<typeof ImageGenerationFormSchema>>({
     resolver: zodResolver(ImageGenerationFormSchema),
@@ -122,11 +122,20 @@ const Configurations = () => {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
     await generateImage(values);
+    if (error) {
+      toast.error(error);
+    }
   }
   return (
     <TooltipProvider>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          {error && (
+            <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-md">
+              <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
           <fieldset className="grid gap-6 p-4 bg-background rounded-lg border">
             <legend>Settings</legend>
             {/* model - dropdown select */}
@@ -442,7 +451,7 @@ const Configurations = () => {
 
             {/* Submit button */}
             <Button type="submit" className="font-medium" disabled={loading}>
-                {loading ? <Loader2/> : "Generate Image"}
+              {loading ? <Loader2 /> : "Generate Image"}
             </Button>
           </fieldset>
         </form>

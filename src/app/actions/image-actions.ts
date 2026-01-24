@@ -35,7 +35,6 @@ export async function generateImageAction(
         const output = await replicate.run(input.model as `${string}/${string}`, {
             input: modelInput,
         });
-        console.log("output", output);
         return {
             error: null,
             success: true,
