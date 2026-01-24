@@ -1,16 +1,8 @@
-"use client"
+"use client";
 
-import {
-  ChevronsUpDown,
-  CreditCard,
-  LogOut,
-  Settings2,
-} from "lucide-react"
+import { ChevronsUpDown, CreditCard, LogOut, Settings2 } from "lucide-react";
 
-import {
-  Avatar,
-  AvatarFallback,
-} from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,24 +11,33 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {  
+} from "@/components/ui/dropdown-menu";
+import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
-import Link from "next/link"
+} from "@/components/ui/sidebar";
+import { createClient } from "@/lib/supabase";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export function NavUser({
   user,
 }: {
   user: {
-    name: string
-    email: string
-  }
+    name: string;
+    email: string;
+  };
 }) {
-  const { isMobile } = useSidebar()
+  const { isMobile } = useSidebar();
+  const router = useRouter();
+  const supabase = createClient();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.replace("/");
+  };
 
   return (
     <SidebarMenu>
@@ -91,19 +92,33 @@ export function NavUser({
             {/* <DropdownMenuSeparator /> */}
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Settings2 />
-                <Link href="/account-settings" className="w-full cursor-pointer"> Settings </Link>
+              <DropdownMenuItem asChild>
+                <Link
+                  href="/account-settings"
+                  className="w-full cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <Settings2 />
+                    <span>Settings</span>
+                  </div>
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                <Link href="/billing" className="w-full cursor-pointer"> Billing </Link>
+              <DropdownMenuItem asChild>
+                <Link href="/billing" className="w-full cursor-pointer">
+                  <div className="flex items-center gap-2">
+                    <CreditCard />
+                    <span>Billing</span>
+                  </div>
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut className="size-4 text-destructive"/>
-          
+            <DropdownMenuItem
+              onClick={handleLogout}
+              className="text-destructive"
+            >
+              <LogOut className="size-4" />
+              <span>Log out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -6,12 +6,23 @@ import {
   SidebarMenuButton,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { createServerClientComponent } from "@/lib/supabase-server";
 import { Sparkles } from "lucide-react";
 import { NavMain } from "./nav-main";
+import { NavUser } from "./nav-user";
 
-export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
- 
-  // console.log("User:", user);
+export async function AppSidebar({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) {
+  const supabase = await createServerClientComponent();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const userName =
+    user?.user_metadata?.name || user?.email?.split("@")[0] || "User";
+  const userEmail = user?.email || "user@example.com";
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -31,7 +42,9 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
       <SidebarContent>
         <NavMain />
       </SidebarContent>
-      <SidebarFooter></SidebarFooter>
+      <SidebarFooter>
+        <NavUser user={{ name: userName, email: userEmail }} />
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );
