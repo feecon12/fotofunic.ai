@@ -1,11 +1,20 @@
 "use client";
 
-import React from "react";
-import { Card, CardContent } from "../ui/card";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../ui/carousel";
-import Image from "next/image";
+import { downloadImage } from "@/lib/download-utils";
 import useGeneratedStore from "@/store/useGeneratedStore";
-import { Loader2 } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "../ui/button";
+import { Card, CardContent } from "../ui/card";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "../ui/carousel";
 
 // const images = [
 //   {
@@ -29,40 +38,106 @@ import { Loader2 } from "lucide-react";
 const GeneratedImages = () => {
   const images = useGeneratedStore((state) => state.images);
   const loading = useGeneratedStore((state) => state.loading);
-    if (images.length === 0) { 
-        return <Card className="w-full max-w-2xl bg-muted">
-            <CardContent className="flex aspect-square items-center justify-center p-6">
-                <span className="text-2xl">
-                    No images generted
-                </span>
-            </CardContent>
-        </Card>;
-    }
+  const [downloading, setDownloading] = useState<number | null>(null);
 
+  const handleDownload = async (imageUrl: string, index: number) => {
+    setDownloading(index);
+    try {
+      const timestamp = new Date().toISOString().split("T")[0];
+      await downloadImage(
+        imageUrl,
+        `generated-image-${timestamp}-${index + 1}`
+      );
+      toast.success("Image downloaded!");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to download image";
+      toast.error(errorMessage);
+    } finally {
+      setDownloading(null);
+    }
+  };
+
+  if (images.length === 0) {
+    return (
+      <Card className="w-full bg-muted p-4 rounded-lg border">
+        <CardContent className="flex aspect-[3/2] items-center justify-center">
+          <span className="text-2xl">No images generated</span>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <Carousel className="w-full max-w-2xl">
-      <CarouselContent>
-        {images.map((image, index) => (
-          <CarouselItem key={index}>
-            <div className="flex relative items-center justify-center rounded-lg overflow-hidden aspect-square">
-              {loading ? (
-                <Loader2 className="absolute inset-0 m-auto" />
-              ) : (
-                <Image
-                  src={image.url}
-                  alt={"generated images using AI"}
-                  fill
-                  className="w-full h-full object-cover"
-                />
-              )}
-            </div>
-          </CarouselItem>
-        ))}
-      </CarouselContent>
-      <CarouselPrevious />
-      <CarouselNext />
-    </Carousel>
+    <div className="space-y-4 w-full">
+      <div className="bg-background p-4 rounded-lg border relative">
+        <Carousel className="w-full">
+          <CarouselContent>
+            {images.map((image, index) => (
+              <CarouselItem key={index}>
+                <div className="flex relative items-center justify-center rounded-lg overflow-hidden aspect-[3/2]">
+                  {loading ? (
+                    <Loader2 className="absolute inset-0 m-auto animate-spin" />
+                  ) : (
+                    <Image
+                      src={image.url}
+                      alt={"generated images using AI"}
+                      fill
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8" />
+          <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8" />
+        </Carousel>
+      </div>
+
+      {/* Download Button */}
+      {!loading && images.length > 0 && (
+        <div className="flex gap-2 w-full justify-end">
+          {images.length > 1 && (
+            <Button
+              onClick={() => {
+                images.forEach((image, index) => {
+                  setTimeout(
+                    () => handleDownload(image.url, index),
+                    index * 200
+                  );
+                });
+              }}
+              disabled={downloading !== null}
+              variant="outline"
+              className="flex items-center gap-2"
+              size="sm"
+            >
+              <Download className="h-4 w-4" />
+              Download All ({images.length})
+            </Button>
+          )}
+          <Button
+            onClick={() => handleDownload(images[0].url, 0)}
+            disabled={downloading !== null}
+            className="flex items-center gap-2"
+            size="sm"
+          >
+            {downloading === 0 ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Downloading...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" />
+                Download
+              </>
+            )}
+          </Button>
+        </div>
+      )}
+    </div>
   );
 };
 

@@ -1,7 +1,8 @@
-import { create } from "zustand";
+import { saveToGallery } from "@/app/actions/gallery-actions";
+import { generateImageAction } from "@/app/actions/image-actions";
 import { ImageGenerationFormSchema } from "@/components/image-generation/Configurations";
 import { z } from "zod";
-import { generateImageAction } from "@/app/actions/image-actions";
+import { create } from "zustand";
 
 interface GenerateState {
   loading: boolean;
@@ -26,8 +27,25 @@ const useGeneratedStore = create<GenerateState>((set) => ({
         set({ error: error, loading: false });
         return;
       }
-      const dataWithUrl = data.map((url: string) => {
-          return { url };
+
+      // Save each generated image to gallery
+      const imageUrls = Array.isArray(data) ? data : [data];
+      for (const url of imageUrls) {
+        await saveToGallery(
+          url,
+          values.prompt,
+          values.model,
+          values.guidance,
+          values.num_of_inference_steps,
+          values.output_format,
+          values.aspect_ratio,
+          [], // tags (empty by default)
+          undefined // image_name (user can rename in gallery)
+        );
+      }
+
+      const dataWithUrl = imageUrls.map((url: string) => {
+        return { url };
       });
       set({ images: dataWithUrl, loading: false });
     } catch (e) {
