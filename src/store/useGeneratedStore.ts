@@ -7,6 +7,7 @@ import { create } from "zustand";
 interface GenerateState {
   loading: boolean;
   images: Array<{ url: string }>;
+  generationCount: number;
   error: string | null;
   generateImage: (
     values: z.infer<typeof ImageGenerationFormSchema>,
@@ -16,6 +17,7 @@ interface GenerateState {
 const useGeneratedStore = create<GenerateState>((set) => ({
   loading: false,
   images: [],
+  generationCount: 0,
   error: null,
 
   generateImage: async (values: z.infer<typeof ImageGenerationFormSchema>) => {
@@ -59,7 +61,11 @@ const useGeneratedStore = create<GenerateState>((set) => ({
       const dataWithUrl = imageUrls.map((url: string) => {
         return { url };
       });
-      set({ images: dataWithUrl, loading: false });
+      set((state) => ({
+        images: dataWithUrl,
+        loading: false,
+        generationCount: state.generationCount + 1,
+      }));
     } catch (e) {
       const errorMsg = e instanceof Error ? e.message : String(e);
       set({ error: errorMsg, loading: false });

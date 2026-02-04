@@ -1,8 +1,9 @@
 "use client";
 
 import { downloadImage } from "@/lib/download-utils";
+import { cn } from "@/lib/utils";
 import useGeneratedStore from "@/store/useGeneratedStore";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, Lock } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -35,7 +36,7 @@ import {
 //   },
 // ];
 
-const GeneratedImages = () => {
+const GeneratedImages = ({ blurred = false }: { blurred?: boolean }) => {
   const images = useGeneratedStore((state) => state.images);
   const loading = useGeneratedStore((state) => state.loading);
   const [downloading, setDownloading] = useState<number | null>(null);
@@ -46,7 +47,7 @@ const GeneratedImages = () => {
       const timestamp = new Date().toISOString().split("T")[0];
       await downloadImage(
         imageUrl,
-        `generated-image-${timestamp}-${index + 1}`
+        `generated-image-${timestamp}-${index + 1}`,
       );
       toast.success("Image downloaded!");
     } catch (error) {
@@ -83,8 +84,17 @@ const GeneratedImages = () => {
                       src={image.url}
                       alt={"generated images using AI"}
                       fill
-                      className="w-full h-full object-cover"
+                      className={cn(
+                        "w-full h-full object-cover transition",
+                        blurred && "blur-md scale-[1.02]",
+                      )}
                     />
+                  )}
+                  {blurred && !loading && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 text-white">
+                      <Lock className="h-6 w-6 mb-2" />
+                      <p className="text-sm font-medium">Sign up to unlock</p>
+                    </div>
                   )}
                 </div>
               </CarouselItem>
@@ -104,11 +114,11 @@ const GeneratedImages = () => {
                 images.forEach((image, index) => {
                   setTimeout(
                     () => handleDownload(image.url, index),
-                    index * 200
+                    index * 200,
                   );
                 });
               }}
-              disabled={downloading !== null}
+              disabled={downloading !== null || blurred}
               variant="outline"
               className="flex items-center gap-2"
               size="sm"
@@ -119,7 +129,7 @@ const GeneratedImages = () => {
           )}
           <Button
             onClick={() => handleDownload(images[0].url, 0)}
-            disabled={downloading !== null}
+            disabled={downloading !== null || blurred}
             className="flex items-center gap-2"
             size="sm"
           >
